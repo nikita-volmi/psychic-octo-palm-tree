@@ -1,18 +1,14 @@
-name: Build and Push Images
+name: Build and Push Images to Azure ACR
 
 on:
   push:
     branches: [main]
-
-env:
-  REGISTRY: ghcr.io
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
     strategy:
       matrix:
         include:
@@ -26,12 +22,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Log in to GHCR
+      - name: Log in to Azure ACR
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ${{ secrets.AZURE_REGISTRY_URL }}
+          username: ${{ secrets.AZURE_REGISTRY_USERNAME }}
+          password: ${{ secrets.AZURE_REGISTRY_PASSWORD }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -42,8 +38,8 @@ jobs:
           context: ${{ matrix.context }}
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.service }}:latest
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.service }}:${{ github.sha }}
+            ${{ secrets.AZURE_REGISTRY_URL }}/${{ matrix.service }}:latest
+            ${{ secrets.AZURE_REGISTRY_URL }}/${{ matrix.service }}:${{ github.sha }}
           build-args: |
             VITE_AUTH_API_URL=${{ vars.VITE_AUTH_API_URL }}
             VITE_GAME_API_URL=${{ vars.VITE_GAME_API_URL }}
