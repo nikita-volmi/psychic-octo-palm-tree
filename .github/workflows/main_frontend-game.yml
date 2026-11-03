@@ -1,0 +1,37 @@
+# Docs for the Azure Web Apps Deploy action: https://go.microsoft.com/fwlink/?linkid=2134798
+# More GitHub Actions for Azure: https://go.microsoft.com/fwlink/?linkid=2135048
+
+name: Azure App Service - frontend-game(Production), Build and deploy container app
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # checkout the repo
+    - name: 'Checkout Github Action'
+      uses: actions/checkout@master
+
+
+    - uses: azure/docker-login@v1
+      with:
+        login-server: https://testprjct.azurecr.io/
+        username: ${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_06D6DCE900E346A79103FEB53B0275DB }}
+        password: ${{ secrets.AZUREAPPSERVICE_CONTAINERPASSWORD_B50CE36E76324BE68E06BD027317A0D2 }}
+
+    - run: |
+        docker build . -t testprjct.azurecr.io/${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_06D6DCE900E346A79103FEB53B0275DB }}/testprjct.azurecr.io/frontend:latest:${{ github.sha }}
+        docker push testprjct.azurecr.io/${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_06D6DCE900E346A79103FEB53B0275DB }}/testprjct.azurecr.io/frontend:latest:${{ github.sha }}
+
+    - uses: azure/webapps-deploy@v2
+      with:
+        app-name: frontend-game
+        slot-name: Production
+        publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_DD28163E8B2A4B2B82A80990EE95DFFF }}
+        images: testprjct.azurecr.io/${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_06D6DCE900E346A79103FEB53B0275DB }}/testprjct.azurecr.io/frontend:latest:${{ github.sha }}
+
